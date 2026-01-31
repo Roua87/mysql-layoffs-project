@@ -76,3 +76,20 @@ WHERE year1 IS NOT NULL
 SELECT *
 FROM RANKCOMP
 WHERE rank1<5;
+
+-- Analyzing the Velocity of Layoffs (Month-over-Month)
+-- This helps identify if the layoff trend is accelerating or slowing down
+WITH Monthly_Totals AS (
+    SELECT 
+        SUBSTRING(`date`, 1, 7) AS `Month`, 
+        SUM(total_laid_off) AS total_off
+    FROM layoffs2
+    WHERE SUBSTRING(`date`, 1, 7) IS NOT NULL
+    GROUP BY `Month`
+)
+SELECT 
+    `Month`, 
+    total_off,
+    LAG(total_off) OVER (ORDER BY `Month`) AS prev_month_total,
+    ROUND(((total_off - LAG(total_off) OVER (ORDER BY `Month`)) / LAG(total_off) OVER (ORDER BY `Month`)) * 100, 2) AS pct_growth
+FROM Monthly_Totals;
